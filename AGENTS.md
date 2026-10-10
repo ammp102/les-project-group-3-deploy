@@ -64,3 +64,13 @@
 2. **Friday Dumps:** Proibido acumular alterações massivas sem histórico incremental de commits. O histórico de versões deve refletir progresso distribuído no tempo.
 3. **Código Opaco / Não Explicado:** Código cuja razão de existir ou funcionamento não seja dominado pelo desenvolvedor não pode ser submetido.
 4. **Violação da Definition of Done:** Nenhuma funcionalidade é dada como concluída se não puder ser executada na tag da respetiva iteração (`iter-N`).
+
+## 6. Comunicação de Negócio e Documentação de Desenho
+
+* **Alinhamento Prévio de Lógica de Negócio (Business Logic):**
+  * Qualquer decisão relevante de lógica de negócio, regras de triagem ou validações de domínio deve ser **obrigatoriamente comunicada e alinhada com a equipa antes de ser decidida ou implementada**.
+  * É estritamente proibido que um desenvolvedor ou agente assuma ou altere fluxos de negócio unilateralmente sem validação coletiva.
+* **Documentação Obrigatória de Decisões de Arquitetura e Modelação:**
+  * Todas as decisões arquiteturais estruturais (padrões adotados, desenho de agregados, contratos de API e modelos de entidades) devem ser formalmente documentadas no repositório (ex.: Architecture Decision Records / ADRs ou notas na documentação técnica).
+  * O objetivo é assegurar transparência, consistência e domínio técnico partilhado por todos os membros da equipa.
+  
