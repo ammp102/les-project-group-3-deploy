@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: patas-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: patas_admin
+      POSTGRES_PASSWORD: securepassword
+      POSTGRES_DB: patas_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - patas_pgdata:/var/lib/postgresql/data
+
+volumes:
+  patas_pgdata:
