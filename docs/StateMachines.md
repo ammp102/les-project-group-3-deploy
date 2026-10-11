@@ -109,7 +109,7 @@ stateDiagram-v2
 
 Notes:
 * **Reservation rule:** moving an application to `Interview` reserves the animal. Only one application per animal can be in `Interview` or `TrialPeriod`; all other open applications go `OnHold`.
-* The application stores its `previousStatus` when put `OnHold`, so it resumes at the same stage.
+* When an application is released from `OnHold`, it resumes at the stage recorded in its status history (`application_status_changes`).
 * `Closed` applies only to applications that never reserved the animal (`Submitted`, `Screening`, `OnHold`). The reserved application can never be closed by another adoption.
 * If the trial is declined or cancelled (see [[#4. Trial Period (Foster-to-Adopt)|section 4]]), the application stays in `Interview`.
 * Every transition is recorded in the application's status history (feeds the Adoption Tracker) and generates an email and an in-app notification.

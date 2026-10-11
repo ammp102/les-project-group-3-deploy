@@ -93,7 +93,6 @@ classDiagram
         +UUID applicantId
         +UUID animalId
         +ApplicationStatus status
-        +ApplicationStatus previousStatus
         +Date submittedAt
         +moveToScreening()
         +moveToInterview()
@@ -113,7 +112,7 @@ classDiagram
         +Date changedAt
     }
 
-    class ScreeningNote {
+    class ApplicationNote {
         <<Entity>>
         +String text
         +UUID authorId
@@ -189,7 +188,7 @@ classDiagram
     User "1" --> "*" AdoptionApplication : submits (by ID)
     AdoptionApplication "*" --> "1" Animal : targets (by ID)
     AdoptionApplication "1" *-- "*" StatusChange : history
-    AdoptionApplication "1" *-- "*" ScreeningNote : private notes
+    AdoptionApplication "1" *-- "*" ApplicationNote : private notes
     AdoptionApplication "1" *-- "0..1" TrialPeriod : includes
     TrialPeriod "1" *-- "*" CheckIn : logs
 
@@ -209,7 +208,7 @@ classDiagram
 3. **Aggregate boundaries:** `Association`, `Animal`, `AdoptionApplication`, `WishlistItem`, `User` and `Notification` are separate aggregate roots that reference each other by ID. Composition is used only within an aggregate (e.g., `Pledge` inside `WishlistItem`). Cross-aggregate effects are coordinated through domain events (see [[StateMachines#8. Cross-Machine Rules|StateMachines section 8]]), which also lets an Association be loaded without loading all its animals.
 4. **Matchmaker Profile as an Entity:** The `MatchmakerProfile` is an editable entity tied to the `User`, so citizens can update their lifestyle conditions over time to get better recommendations. It includes previous experience, as required by the Vision. Visitors' quiz answers are session-only and never stored. The animal side of the match relies on the `Animal` attributes (size, temperament, compatibility), which also power the catalog filters.
 5. **Trial Period as a Separate Entity:** `TrialPeriod` is an optional entity inside the `AdoptionApplication` aggregate, which avoids null fields (trial dates, fee) on standard adoptions. It owns its lifecycle (`TrialStatus`), its fee and payment reference, and its `CheckIn` log. The fee is copied from the association's `defaultTrialFee` at approval time, so later changes do not affect existing trials.
-6. **Application history and private notes:** `StatusChange` entries are the source of the Adoption Tracker timeline. `ScreeningNote` entries are private to the association's staff and never exposed to the applicant.
+6. **Application history and private notes:** `StatusChange` entries are the source of the Adoption Tracker timeline (avoiding redundant previous status fields). `ApplicationNote` entries are private to the association's staff across all process stages and never exposed to the applicant.
 7. **Wishlist and Pledge Aggregation:** `WishlistItem` receives multiple `Pledge` entities and has **no hard limit**: any quantity can be pledged while the item is `Active`, and Staff close the item when they have enough. Instead of a cap, `targetQuantity` is a soft target. From the pledges the item derives `confirmedQuantity` (received), `pledgedQuantity` (promised), `coverage` (committed divided by target) and a `priority` (High, Medium, Low) used to order the wishlist. See [[StateMachines#6. Solidarity Wishlist (Item and Pledge)|StateMachines section 6]].
 8. **Parametric Foster Profiling:** `FosterProfile` is a `Role` attached to a `User`. Temporary fostering does not require a separate account; a Citizen toggles the Foster Family role and defines `HousingConditions`, accepted species, maximum size, simultaneous capacity and an availability window. The Parametric Engine matches these against an animal's needs and excludes families at capacity or outside their window.
 9. **Foster Assignment history:** An `Animal` keeps its `FosterAssignment` history (zero or more entries), with at most one assignment in `Proposed`, `Accepted` or `Active` status at any time. The assignment's status drives the animal's `Location` (see [[StateMachines#5. Foster Assignment (Temporary Fostering)|StateMachines section 5]]).

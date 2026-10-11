@@ -115,11 +115,7 @@ CREATE TYPE trial_status AS ENUM (
     'cancelled'
 );
 
--- How a failed trial ends the application (Rejected by staff or Withdrawn by citizen)
-CREATE TYPE trial_failure_outcome AS ENUM (
-    'rejected',
-    'withdrawn'
-);
+
 
 -- Foster Assignment (StateMachines section 5)
 CREATE TYPE foster_assignment_status AS ENUM (
@@ -290,6 +286,7 @@ CREATE TABLE animals (
     good_with_cats boolean,
     photos text[] NOT NULL DEFAULT ARRAY[]::text[],
     description text,
+    tsvectors tsvector,
     adoption_status adoption_status NOT NULL DEFAULT 'available',
     location animal_location NOT NULL DEFAULT 'at_shelter',
     created_at timestamptz NOT NULL DEFAULT now(),
@@ -299,12 +296,7 @@ CREATE TABLE animals (
         FOREIGN KEY (association_id) REFERENCES associations (id) ON DELETE RESTRICT,
     CONSTRAINT animals_name_not_blank_check CHECK (char_length(btrim(name)) > 0),
     CONSTRAINT animals_age_non_negative_check CHECK (age_in_months IS NULL OR age_in_months >= 0),
-    CONSTRAINT animals_photos_not_blank_check CHECK (text_array_has_no_blank(photos)),
-    -- Cross-machine invariant (StateMachines section 8): the animal is With Adopter
-    -- exactly while it is In Trial or Adopted. Status and location must change in
-    -- the same UPDATE statement.
-    CONSTRAINT animals_adopter_location_check
-        CHECK ((adoption_status IN ('in_trial', 'adopted')) = (location = 'with_adopter'))
+    CONSTRAINT animals_photos_not_blank_check CHECK (text_array_has_no_blank(photos))
 );
 
 COMMENT ON TABLE animals IS
@@ -349,26 +341,17 @@ CREATE TABLE adoption_applications (
     applicant_id uuid NOT NULL,
     animal_id uuid NOT NULL,
     status application_status NOT NULL DEFAULT 'submitted',
-    previous_status application_status,
     submitted_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT adoption_applications_pkey PRIMARY KEY (id),
     CONSTRAINT adoption_applications_applicant_id_fkey
         FOREIGN KEY (applicant_id) REFERENCES users (id) ON DELETE RESTRICT,
     CONSTRAINT adoption_applications_animal_id_fkey
-        FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE RESTRICT,
-    -- previous_status is stored only while On Hold, so the application resumes at the same stage.
-    CONSTRAINT adoption_applications_previous_status_check
-        CHECK (
-            (status = 'on_hold') = (previous_status IS NOT NULL)
-            AND (previous_status IS NULL OR previous_status IN ('submitted', 'screening'))
-        )
+        FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE RESTRICT
 );
 
 COMMENT ON TABLE adoption_applications IS
-    'Formal adoption process. Active uniqueness and single-reservation rules enforced via partial indexes.';
-COMMENT ON COLUMN adoption_applications.previous_status IS
-    'Stage to resume when an On Hold application is released. NULL in every other status.';
+    'Formal adoption process. Active uniqueness and single-reservation rules enforced via partial indexes. Status history tracked in application_status_changes.';
 
 -- 10. APPLICATION STATUS HISTORY (Append-only, source of the Adoption Tracker timeline)
 CREATE TABLE application_status_changes (
@@ -385,23 +368,23 @@ CREATE TABLE application_status_changes (
 COMMENT ON TABLE application_status_changes IS
     'Append-only status history. from_status is NULL for the initial submission. Feeds the Adoption Tracker timeline.';
 
--- 11. SCREENING NOTES (Private staff notes, never exposed to the applicant)
-CREATE TABLE screening_notes (
+-- 11. APPLICATION NOTES (Private staff notes across the application lifecycle)
+CREATE TABLE application_notes (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     application_id uuid NOT NULL,
     author_id uuid NOT NULL,
     note text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT screening_notes_pkey PRIMARY KEY (id),
-    CONSTRAINT screening_notes_application_id_fkey
+    CONSTRAINT application_notes_pkey PRIMARY KEY (id),
+    CONSTRAINT application_notes_application_id_fkey
         FOREIGN KEY (application_id) REFERENCES adoption_applications (id) ON DELETE CASCADE,
-    CONSTRAINT screening_notes_author_id_fkey
+    CONSTRAINT application_notes_author_id_fkey
         FOREIGN KEY (author_id) REFERENCES users (id) ON DELETE RESTRICT,
-    CONSTRAINT screening_notes_note_not_blank_check CHECK (char_length(btrim(note)) > 0)
+    CONSTRAINT application_notes_note_not_blank_check CHECK (char_length(btrim(note)) > 0)
 );
 
-COMMENT ON TABLE screening_notes IS
-    'Private notes added by Association Staff during screening. Never exposed to the applicant.';
+COMMENT ON TABLE application_notes IS
+    'Private notes added by Association Staff during screening, interview, or follow-up. Never exposed to the applicant.';
 
 -- 12. TRIAL PERIODS (Foster-to-Adopt window inside Application, own lifecycle)
 CREATE TABLE trial_periods (
@@ -413,33 +396,23 @@ CREATE TABLE trial_periods (
     fee_amount numeric(12, 2) NOT NULL DEFAULT 0,
     is_fee_paid boolean NOT NULL DEFAULT false,
     payment_reference text,
-    failure_outcome trial_failure_outcome,
+    outcome_notes text,
     updated_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT trial_periods_pkey PRIMARY KEY (id),
     CONSTRAINT trial_periods_application_id_fkey
         FOREIGN KEY (application_id) REFERENCES adoption_applications (id) ON DELETE CASCADE,
     CONSTRAINT trial_periods_application_id_key UNIQUE (application_id),
     CONSTRAINT trial_periods_dates_check
-        CHECK ((start_date IS NULL) = (end_date IS NULL) AND (start_date IS NULL OR end_date >= start_date)),
-    CONSTRAINT trial_periods_fee_amount_non_negative_check CHECK (fee_amount >= 0),
-    -- A trial that started (or ended after starting) must have dates.
-    CONSTRAINT trial_periods_started_has_dates_check
-        CHECK (status NOT IN ('active', 'succeeded', 'failed') OR start_date IS NOT NULL),
-    -- Active requires the fee to be settled (or no fee).
-    CONSTRAINT trial_periods_active_fee_settled_check
-        CHECK (status NOT IN ('active', 'succeeded', 'failed') OR fee_amount = 0 OR is_fee_paid),
-    -- Outcome is recorded exactly when the trial failed.
-    CONSTRAINT trial_periods_failure_outcome_check
-        CHECK ((status = 'failed') = (failure_outcome IS NOT NULL))
+        CHECK (start_date IS NULL OR end_date IS NULL OR end_date >= start_date),
+    CONSTRAINT trial_periods_fee_amount_non_negative_check CHECK (fee_amount >= 0)
 );
 
 COMMENT ON TABLE trial_periods IS
     'Foster-to-Adopt trial. The adopter requests it; the association approves or declines. Dates are set when the trial becomes active.';
 COMMENT ON COLUMN trial_periods.fee_amount IS
     'Copied from associations.default_trial_fee at approval time; later changes do not affect existing trials.';
-COMMENT ON COLUMN trial_periods.payment_reference IS 'Stripe (test mode) payment reference.';
-COMMENT ON COLUMN trial_periods.failure_outcome IS
-    'Whether a failed trial ends the application as rejected (by staff) or withdrawn (by the citizen).';
+COMMENT ON COLUMN trial_periods.payment_reference IS 'Payment reference (e.g., Stripe test mode).';
+COMMENT ON COLUMN trial_periods.outcome_notes IS 'Optional closing notes or outcome details upon completion or failure.';
 
 -- 13. TRIAL CHECK-INS (Append-only Follow-up Log)
 CREATE TABLE trial_check_ins (
@@ -500,13 +473,12 @@ CREATE TABLE pledges (
 COMMENT ON TABLE pledges IS
     'Citizen commitment to provide a quantity of an item. Confirmed or released as a whole. created_at tracks commitment timestamp.';
 
--- 16. NOTIFICATIONS (Aggregate Root: email + in-app delivery)
+-- 16. NOTIFICATIONS (In-app notifications driven by domain events)
 CREATE TABLE notifications (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     recipient_id uuid NOT NULL,
     type notification_type NOT NULL,
     message text NOT NULL,
-    email_sent boolean NOT NULL DEFAULT false,
     read_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT notifications_pkey PRIMARY KEY (id),
@@ -516,7 +488,7 @@ CREATE TABLE notifications (
 );
 
 COMMENT ON TABLE notifications IS
-    'Created by domain events (every application state change, trial and foster updates). read_at is NULL until seen in-app.';
+    'In-app notifications created by domain events. read_at is NULL until seen by the user.';
 
 -- * ====================================================
 -- * Views (derived values, never stored)
@@ -581,9 +553,6 @@ CREATE UNIQUE INDEX idx_foster_assignments_one_open_per_animal
 -- * ====================================================
 -- * Full Text Search Index Creation (GIN)
 -- * ====================================================
-
-ALTER TABLE animals
-ADD COLUMN tsvectors TSVECTOR;
 
 -- Optimized search trigger: recalculates tsvectors ONLY if name, species, or description changes.
 -- Normal status/location/timestamp transitions do not trigger GIN re-indexing.

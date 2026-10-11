@@ -46,7 +46,7 @@ This document formalizes the architectural decisions made collaboratively by the
   * **Immutable *append-only* tables (a single event timestamp):**
     * `trial_check_ins`: `logged_at`.
     * `application_status_changes`: `changed_at`.
-    * `screening_notes`: `created_at`.
+    * `application_notes`: `created_at`.
   * **No Timestamps:**
     * `volunteer_profiles` and `foster_profiles`: Accessory profiles 1:1 coupled to the `User` lifecycle.
 * **Impact:** Only **8 triggers** `BEFORE UPDATE` for `updated_at` (the original 6, plus `foster_assignments` and `trial_periods`), eliminating unnecessary RDBMS processing in the remaining tables.
@@ -111,27 +111,26 @@ This document formalizes the architectural decisions made collaboratively by the
 | `verification_status` | New value `suspended` | Machine 7 (Association Verification) |
 | `animal_location` | New values `awaiting_pickup` and `with_adopter` | Machine 2 (Location) |
 | `application_status` | New value `on_hold` | Machine 3 (Application) |
-| `adoption_applications.previous_status` | New column; mandatory **only** when `status = 'on_hold'` (`submitted` or `screening`), for the application to resume in the same phase | Machine 3 |
+| `application_status_changes` | Tracks status history (eliminates redundant `previous_status` column) | Machine 3 |
 | `trial_periods.status` | New column `trial_status` (`requested`, `approved`, `active`, `succeeded`, `failed`, `declined`, `cancelled`) | Machine 4 (Trial) |
-| `trial_periods.failure_outcome` | Record of how a failed trial terminates the application (`rejected` or `withdrawn`); populated exactly when `status = 'failed'` | Machine 4 |
-| `trial_periods.start_date / end_date` | Become optional (defined when the trial becomes `active`) | Machine 4 |
-| `trial_periods.payment_reference` | New column for the Stripe reference (test mode) | Vision, Pillar 2 |
+| `trial_periods.outcome_notes` | Free-form notes/outcome details upon completion or failure | Machine 4 |
+| `trial_periods.start_date / end_date` | Defined when the trial becomes `active` | Machine 4 |
+| `trial_periods.payment_reference` | New column for payment reference (e.g., Stripe test mode) | Vision, Pillar 2 |
 | `associations.default_trial_fee` | Default fee, copied to `trial_periods.fee_amount` upon approval | DomainModel, decision 5 |
 | `foster_assignments` | New table with `foster_assignment_status` (`proposed`, `accepted`, `active`, `completed`, `declined`, `cancelled`) | Machine 5 (Foster Assignment) |
 | `matchmaker_profiles.experience` | New column `experience_level` (previous experience) | Vision, Pillar 1 |
 | `foster_profiles` | Now stores `accepted_species`, `max_size`, `max_simultaneous_animals`, availability window (`available_from`, `available_until`, `NULL` = continuous), and `is_active` | Vision, Pillar 2; DomainModel |
 
-* **Integrity rules in `CHECK`:** an `active`, `succeeded`, or `failed` trial requires dates; an active trial requires a paid fee (or zero fee); `end_date >= start_date`.
+* **Integrity rules in `CHECK`:** `end_date >= start_date`; non-negative fees.
 
 ---
 
-### Decision 8: Cross-Machine Invariants Guaranteed by the Database
-* **Decision:** Synchronization rules between machines (see [[StateMachines#8. Cross-Machine Rules|StateMachines section 8]]) that can be expressed in SQL are now guaranteed by the RDBMS, and not just by the application layer.
+### Decision 8: Concurrency Invariants Guaranteed by Partial Indexes
+* **Decision:** Domain reservation and concurrency rules are guaranteed by the RDBMS through partial unique indexes, while cross-dimension status synchronization (`adoption_status` vs. `location`) is managed by the application/domain aggregate layer.
 * **Implementation:**
-  * **`CHECK` in `animals`:** `(adoption_status IN ('in_trial', 'adopted')) = (location = 'with_adopter')`. The animal is *With Adopter* exactly while it is in trial or adopted.
   * **Partial unique index** `idx_adoption_applications_one_reserving_per_animal`: at most **one** application per animal in `interview` or `trial_period` (reservation rule).
   * **Partial unique index** `idx_foster_assignments_one_open_per_animal`: at most **one** foster assignment in `proposed`, `accepted`, or `active` per animal.
-* **Consequence for the backend:** `adoption_status` and `location` must be changed **in the same `UPDATE` statement** (the `CHECK` is evaluated per row, after each statement). This is natural in the State pattern, where a transition produces the new pair of states atomically.
+* **Rationale for Domain Layer Synchronization:** Physical shelter operations often involve handoff delays (e.g. animal marked adopted before physical pickup, or adopted while in foster care). Enforcing a rigid boolean 1:1 check in SQL would abort realistic transactions. Hence, lifecycle orchestration is encapsulated in domain aggregates and service handlers rather than rigid relational CHECK constraints.
 
 ---
 
@@ -153,11 +152,11 @@ This document formalizes the architectural decisions made collaboratively by the
 ---
 
 ### Decision 10: Application History, Private Notes, and Notifications
-* **Decision:** Three new tables support explicit requirements from the Vision:
-  * **`application_status_changes`** (*append-only*): state history (`from_status` is `NULL` on initial submission). It is the source for the *Adoption Tracker* timeline.
-  * **`screening_notes`** (*append-only*): private staff notes, never exposed to the applicant.
-  * **`notifications`**: created by domain events (email + in-app), with `email_sent` and `read_at`.
-* **Justification:** Without these tables, it would not be possible to build the *Adoption Tracker* or fulfill the metric "100% of state changes generate a notification" ([[Vision]], section 10).
+* **Decision:** Three tables support explicit requirements from the Vision:
+  * **`application_status_changes`** (*append-only*): state history (`from_status` is `NULL` on initial submission). It is the source for the *Adoption Tracker* timeline and avoids redundant status columns.
+  * **`application_notes`** (*append-only*): generalized private staff notes across the application lifecycle (screening, interview, trial follow-ups), never exposed to the applicant.
+  * **`notifications`**: in-app notifications created by domain events, with `read_at`.
+* **Justification:** Essential for the *Adoption Tracker* and internal association auditability without cluttering the core application aggregate.
 
 ---
 
@@ -183,7 +182,7 @@ This document formalizes the architectural decisions made collaboratively by the
 | `FosterAssignment` | `foster_assignments` |
 | `AdoptionApplication` | `adoption_applications` |
 | `StatusChange` | `application_status_changes` |
-| `ScreeningNote` | `screening_notes` |
+| `InternalNote` | `application_notes` |
 | `TrialPeriod` | `trial_periods` |
 | `CheckIn` | `trial_check_ins` |
 | `WishlistItem` | `wishlist_items` (+ `wishlist_item_progress` view) |
