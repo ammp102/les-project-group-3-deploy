@@ -2,7 +2,7 @@
 
 | Metadata | Detail |
 | :--- | :--- |
-| **Project** | Patas — Collaborative Animal Welfare Platform |
+| **Project** | Patas: Collaborative Animal Welfare Platform |
 | **Context** | Web Project / Software Engineering (Agile Process in 4 Sprints) |
 | **Date** | October 2026 |
 | **Status** | Consolidated Vision & Open Ideas Repository |
@@ -13,8 +13,7 @@
 
 > **For** animal lovers looking to adopt, foster or care for animals, and for animal protection associations struggling with administrative overload,  
 > **Patas** is a collaborative web platform that centralizes and simplifies the entire animal care and adoption cycle.  
-> **Unlike** manual processes relying on spreadsheets, chaotic group chats and scattered applications that leave adopters in the dark,  
-> **Our product** combines an open exploration route with smart lifestyle matching, full transparency through a real-time *Adoption Tracker*, and a guided *Foster-to-Adopt* model — complemented by community volunteering and a solidarity wishlist of goods. By doing so, we maximize compatibility between families and animals, drastically reduce the risk of returns, and relieve associations of heavy manual workloads.
+> **Unlike** manual processes relying on spreadsheets, chaotic group chats and scattered applications that leave adopters in the dark,  **our product** combines an open exploration route with smart lifestyle matching, full transparency through a real-time *Adoption Tracker*, and a guided *Foster-to-Adopt* model, complemented by community volunteering and a solidarity wishlist of goods. By doing so, we maximize compatibility between families and animals, drastically reduce the risk of returns, and relieve associations of heavy manual workloads.
 
 **Our main priority is giving these animals love and a better life.**
 
@@ -23,6 +22,7 @@
 * **Adopt:** people look for the animal that best fits their home and family and adopt it; a temporary stay (*Foster-to-Adopt*) is possible before finalizing the decision, to ensure the fit is right.
 * **Foster:** someone volunteers to provide housing and care for one or multiple animals for a period of time.
 * **Care:** users volunteer to walk animals, feed them, clean them or take them to the vet.
+* **Contribute:** associations can create lists of necessities regarding supplies so that people know what is necessary if they intend to make a donation.
 
 ---
 
@@ -55,7 +55,7 @@
 
 ---
 
-## 4. Platform Model: Multiple Associations
+## 4. Platform Model (Multiple Associations)
 
 * Patas is a **multi-association platform**: each association has its own space (animals, applications, volunteers, wishlist), and the public catalog aggregates animals from all verified associations.
 * Each association's data is isolated: staff only see and manage their own association's records.
@@ -83,20 +83,22 @@
 
 ### Pillar 1: Discovery & Responsible Adoption
 
-* **Path 1 — Open Universal Catalog:**
+* **Path 1 (Open Universal Catalog):**
   * Fast, unobstructed browsing of all registered animals across associations.
   * Clear filters: species, size, age, location, association, compatibility (children, other dogs, cats).
-  * Rich animal profile: photos, temperament, story and required routine.
+  * Rich animal profile: photos, age, size, temperament, compatibility (children, dogs, cats), story and required routine. These same attributes feed the catalog filters and the Matchmaker.
 
-* **Path 2 — Optional Compatibility Algorithm ("Matchmaker"):**
+* **Path 2 (Optional Compatibility Algorithm, "Matchmaker"):**
   * Short lifestyle questionnaire: average time away from home, physical activity level, housing type and previous experience.
   * The system highlights animals with the highest behavioral affinity, explaining why (without blocking access to the remaining animals).
+  * Visitors' answers are used only for the current session; for Citizens they are saved in an editable *Matchmaker Profile*, so recommendations improve as their lifestyle changes.
   * **The algorithm's design is intentionally left open at this stage** and will be detailed later. Envisioned direction: a swipe-based discovery experience ("Tinder-style") in which the user's choices refine future suggestions.
 
 * **Adoption Tracker (End-to-End Transparency):**
-  * Visual timeline for the applicant, in the style of parcel tracking (see the application state machine in [Section 6](#6-state-models)).
+  * Visual timeline for the applicant, in the style of parcel tracking (see the application state machine in [[#6. State Models|Section 6]]).
   * Notifications at every stage change, delivered **by email and in-app** (notification center within the platform), removing uncertainty and follow-up messages to the association.
   * The applicant always knows the outcome, including rejections and when the animal has been adopted by someone else.
+  * The timeline is built from the application's status history, so every stage change is recorded with its date.
 
 ---
 
@@ -107,13 +109,15 @@
   * **The adopter requests it; the association approves or declines it** for each application.
   * The association may set a **trial-period fee**, paid online through the platform (**Stripe, in test mode**, given the academic context of the project).
   * During the trial, the association follows up on the adaptation through the platform (check-ins, notes, trial end date), minimizing returns after definitive adoption.
+  * The trial has its own lifecycle (`Requested → Approved → Active → Succeeded/Failed`, or `Declined`/`Cancelled`). The application only enters `Trial Period` once the trial is `Active` (approved and, if a fee applies, paid). If the trial is declined or cancelled, the application simply continues in `Interview` (e.g., toward a direct adoption). See [[StateMachines]].
 
 * **Parametric Temporary Fostering Engine (Foster Families):**
   * Volunteer families register their availability with flexible parameters:
     * Capacity: accepted species, maximum size, number of simultaneous animals.
     * Physical conditions: house with garden, fenced yard, apartment with safety netting, available play space.
     * Time window: one-off fostering (weekend, other caregivers' holidays) or ongoing.
-  * Associations can search foster families whose parameters match an animal's needs.
+  * Associations can search foster families whose parameters match an animal's needs. Families already at their simultaneous capacity, or outside their time window, are excluded from results.
+  * Assignment is a **proposal**: the family must accept before the animal's location changes to `Awaiting Pickup`. If the family declines, nothing changes for the animal.
 
 ---
 
@@ -133,10 +137,12 @@
 ### Pillar 4: Solidarity Wishlist and In-Kind Donations
 
 * **Reverse Marketplace of Needs:**
-  * The association publishes specific items currently needed, with the quantity required (e.g., *"10kg of gastrointestinal dry food"*, *"Fleece blankets for winter"*, *"Wet food for senior cats"*).
+  * The association publishes specific items currently needed, with a target quantity (e.g., *"10kg of gastrointestinal dry food"*, *"Fleece blankets for winter"*, *"Wet food for senior cats"*).
 * **Pledges with Confirmation:**
-  * The donor pledges a quantity of an item, which is shown as "pledged" to avoid duplicate purchases.
-  * The association confirms receipt, and only then is the outstanding need updated. Pledges not fulfilled can be released by the association.
+  * The donor pledges any quantity of an item. Pledged quantities are shown publicly so other donors can see what is already committed.
+  * There is **no hard limit** on pledges: an item stays open until the association decides it has enough and removes (closes) it from the list.
+  * Each item has a soft **target quantity**. Targets block nothing; they drive a priority level (High, Medium, Low) based on how much of the target is already confirmed or pledged, and the wishlist is ordered by it.
+  * The association confirms receipt, and only then is the received (confirmed) quantity updated. Pledges not fulfilled can be released by the association.
 * **Donations Without Payment Intermediation:**
   * The user buys the items independently wherever they prefer and arranges the drop-off point/time or postal shipping. Wishlist donations do not go through the platform's payment system.
 
@@ -147,7 +153,7 @@
 * **Application Kanban Board:**
   * Column view by application state to move applications, add private screening notes and trigger automatic updates to the adopter.
 * **Integrated Animal Management:**
-  * Animal registration and editing, with the state model described in [Section 6](#6-state-models).
+  * Animal registration and editing, with the state model described in [[#6. State Models|Section 6]].
 * **Volunteer and Roster Hub:**
   * Global view of attendance and active sign-ups per day and shift.
 * **Foster-to-Adopt Settings:**
@@ -157,49 +163,64 @@
 
 ## 6. State Models
 
-> **Proposal — pending team validation.** The original vision mixed temporary fostering and the adoption trial in a single animal state. The proposal below separates them.
+> **Normative source:** the detailed diagrams, transition rules and cross-machine synchronization live in [[StateMachines]]. This section summarizes them.
 >
-> **Alternatives and trade-offs (animal model):**
+> **Decision recorded:** the original vision mixed temporary fostering and the adoption trial in a single animal state. Option B below (two independent dimensions) is adopted.
 >
 > | Option | Cohesion | Coupling | Testability | Maintainability |
 > | :--- | :--- | :--- | :--- | :--- |
-> | **A. Single state machine** (original: `Available → In Process → In Foster/Trial → Adopted`) | Low — one state mixes "where the animal is" with "how far its adoption has gone" | Fostering and adoption rules depend on each other | Fewer states, but cannot express "fostered and still available" | Every new location or process step multiplies the number of states |
-> | **B. Two independent dimensions** (adoption status + location, proposed below) | High — each dimension has a single responsibility | Fostering and adoption evolve independently | Each state machine can be tested in isolation; combinations need a few extra tests | New locations do not affect the adoption flow |
+> | **A. Single state machine** (original: `Available → In Process → In Foster/Trial → Adopted`) | Low: one state mixes "where the animal is" with "how far its adoption has gone" | Fostering and adoption rules depend on each other | Fewer states, but cannot express "fostered and still available" | Every new location or process step multiplies the number of states |
+> | **B. Two independent dimensions** (adoption status + location) | High: each dimension has a single responsibility | Fostering and adoption evolve independently | Each state machine can be tested in isolation; combinations need a few extra tests | New locations do not affect the adoption flow |
 >
 > Both options are compatible with the **State** pattern required by `AGENTS.md`; option B implies two state objects in the `Animal` aggregate instead of one.
 
 ### 6.1 Animal
 
-**Adoption status:**
-
-```
-                ┌──────────────────────────────────────────┐
-                ▼                                          │ (application rejected/withdrawn,
-  Available ──► Reserved ──► In Trial (Foster-to-Adopt) ──► Adopted
-      ▲            │                │                       │
-      │            └────────────────┴── return ─────────────┘ (return → Available)
-      │
-  Unavailable (e.g., medical treatment)            Deceased (terminal)
-```
+**Adoption status** (`Deceased` is intentionally not modeled):
 
 * `Available`: can receive applications.
-* `Reserved`: an application has been accepted for this animal; other applications are put on hold.
-* `In Trial`: Foster-to-Adopt period in progress.
-* `Adopted`: adoption completed. A later return moves the animal back to `Available`.
-* `Unavailable`: temporarily not adoptable (medical, behavioral).
+* `Reserved`: one application has reached `Interview`; other open applications are put `On Hold`.
+* `In Trial`: Foster-to-Adopt period is `Active`.
+* `Adopted`: adoption completed. Not a terminal state: a later return moves the animal back to `Available`.
+* `Unavailable`: temporarily not adoptable (medical, behavioral). Only reachable from `Available`; a reservation must be released first.
 
-**Location** (independent of adoption status): `At Shelter` | `In Foster Home`. A fostered animal (temporary foster care) can remain `Available` for adoption.
+Transitions:
+
+```
+Available   ──► Reserved      (an application moves to Interview)
+Available   ──► Unavailable   (medical/behavioral)      Unavailable ──► Available (recovered)
+Reserved    ──► In Trial      (trial becomes Active)
+Reserved    ──► Adopted       (direct adoption, no trial)
+Reserved    ──► Available     (reserved application rejected/withdrawn)
+In Trial    ──► Adopted       (trial succeeded)
+In Trial    ──► Available     (trial failed / withdrawn, animal returned)
+Adopted     ──► Available     (returned by owner)
+```
+
+**Location** (independent of adoption status): `At Shelter` | `Awaiting Pickup` | `In Foster Home` | `With Adopter` (during a trial and after adoption). A fostered animal can remain `Available` for adoption.
 
 ### 6.2 Adoption Application
 
 ```
-Submitted ──► Screening ──► Interview/Contact ──► [Trial Period] ──► Completed
-    │             │                │                    │
-    └─────────────┴────────────────┴────────────────────┴──► Rejected | Withdrawn | Closed (animal adopted by another applicant)
+Submitted ──► Screening ──► Interview ──► [Trial Period] ──► Completed
+    │  ▲          │  ▲          │                │
+    ▼  │          ▼  │          │                │
+   On Hold ◄──────┘  │          │                │
+   (animal reserved for another application; resumes when released)
+
+Rejected | Withdrawn : from Submitted, Screening, On Hold, Interview, Trial Period
+Closed               : from Submitted, Screening, On Hold (animal adopted by someone else)
 ```
 
-* `Trial Period` is optional (requested by the adopter, approved by the association, may require payment of the trial fee).
+* The animal becomes `Reserved` when an application moves to `Interview`; only one application can be in `Interview`/`Trial Period` per animal.
+* `Trial Period` is optional (requested by the adopter, approved by the association, may require payment of the trial fee) and starts only when the trial is `Active`.
+* If the reserved application is rejected or withdrawn, held applications resume.
+* When the animal becomes `Adopted`, all remaining open applications move to `Closed`.
 * Every transition triggers an email and in-app notification to the applicant.
+
+### 6.3 Supporting state machines
+
+Trial Period, Foster Assignment, Pledge and Association Verification are defined in [[StateMachines]].
 
 ---
 
@@ -210,16 +231,16 @@ To ensure success within a 4-Sprint schedule (8 weeks of development), the broad
 | Feature / Idea | MVP Priority (Sprints 1 to 4) | Next Increment / Future |
 | :--- | :---: | :---: |
 | **Authentication, Roles & Association Registration** | Essential (Sprint 1) | Advanced association verification |
-| **Public Catalog with Filters** | Essential (Sprint 1) | — |
-| **Back-Office: Animal & Status Management** | Essential (Sprint 1-2) | — |
-| **Application Flow with Adoption Tracker (email + in-app)** | Essential (Sprint 2-3) | — |
+| **Public Catalog with Filters** | Essential (Sprint 1) | None |
+| **Back-Office: Animal & Status Management** | Essential (Sprint 1-2) | None |
+| **Application Flow with Adoption Tracker (email + in-app)** | Essential (Sprint 2-3) | None |
 | **Compatibility Algorithm / Quiz** | Differentiating Value (Sprint 3) | Swipe-based ("Tinder-style") discovery |
 | **Foster-to-Adopt (optional trial + Stripe test payment)** | Differentiating Value (Sprint 4) | Extension to Multiple Foster Homes |
 | **Walk Scheduling (registered volunteers)** | Optional (If Sprint 4 has slack) | Points Gamification |
 | **Wishlist with Pledges & Confirmation** | Optional (Sprint 4 / Extension) | Integration with Local Stores |
-| **Parametric Foster Family Engine** | Essential (Sprint to be defined) | — |
-| **Operational Roster (registered volunteers)** | Essential (Sprint to be defined) | — |
-| **Volunteer & Roster Hub (Back-Office)** | Essential (Sprint to be defined) | — |
+| **Parametric Foster Family Engine** | Essential (sprint TBD, see Decision D1) | None |
+| **Operational Roster (registered volunteers)** | Essential (sprint TBD, see Decision D1) | None |
+| **Volunteer & Roster Hub (Back-Office)** | Essential (sprint TBD, see Decision D1) | None |
 
 ---
 
@@ -230,13 +251,14 @@ To ensure success within a 4-Sprint schedule (8 weeks of development), the broad
 * Detailed design of the Matchmaker algorithm (deferred, see Pillar 1).
 * Native mobile applications.
 * Legal adoption contracts and veterinary record management.
+* Recording animal deaths (no `Deceased` state; the model focuses on actionable adoption states).
 
 ---
 
 ## 9. Non-Functional Requirements & Constraints
 
 * **Data protection (GDPR):** applications contain personal and housing data; access is restricted to the applicant and the staff of the association concerned.
-* **Data isolation:** each association only accesses its own data (see Section 4).
+* **Data isolation:** each association only accesses its own data (see [[#4. Platform Model (Multiple Associations)|Section 4]]).
 * **Responsive web:** usable on mobile browsers.
 * **Accessibility:** follow basic web accessibility guidelines.
 * **Notifications:** email and in-app.
@@ -251,5 +273,20 @@ To ensure success within a 4-Sprint schedule (8 weeks of development), the broad
 1. **Follow-Up Transparency:** 100% of application state changes generate a notification to the applicant; average time to first state change is visible to the association.
 2. **Application Effort:** an applicant can find an animal and submit an application in a limited number of steps, validated in usability tests.
 3. **Task Success:** association staff can complete core tasks (register an animal, move an application, approve a trial) in usability tests without assistance.
-4. **Decision Quality (long term):** reduced return rates through the combination of the *Matchmaker* and the *Foster-to-Adopt* period — tracked by recording returns in the platform.
+4. **Decision Quality (long term):** reduced return rates through the combination of the *Matchmaker* and the *Foster-to-Adopt* period, tracked by recording returns in the platform.
 5. **Community Engagement (long term):** number of registered volunteers and fulfilled walk/socialization slots per association.
+
+---
+
+## 11. Related Documents
+
+| Document | Purpose |
+| :--- | :--- |
+| [[Glossary]] | Ubiquitous Language: exact names used in code and stories |
+| [[DomainModel]] | Aggregates, entities and relationships |
+| [[StateMachines]] | Normative lifecycles and cross-machine rules |
+| [[PrototypeFlows_Fostering_Donations]] | Happy paths for the Fostering and Wishlist prototype |
+
+---
+
+
