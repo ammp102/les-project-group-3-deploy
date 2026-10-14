@@ -281,9 +281,7 @@ CREATE TABLE animals (
     age_in_months integer,
     size animal_size,
     temperament text,
-    good_with_children boolean,
-    good_with_dogs boolean,
-    good_with_cats boolean,
+    compatibility jsonb NOT NULL DEFAULT '{}'::jsonb,
     photos text[] NOT NULL DEFAULT ARRAY[]::text[],
     description text,
     tsvectors tsvector,
@@ -296,14 +294,14 @@ CREATE TABLE animals (
         FOREIGN KEY (association_id) REFERENCES associations (id) ON DELETE RESTRICT,
     CONSTRAINT animals_name_not_blank_check CHECK (char_length(btrim(name)) > 0),
     CONSTRAINT animals_age_non_negative_check CHECK (age_in_months IS NULL OR age_in_months >= 0),
-    CONSTRAINT animals_photos_not_blank_check CHECK (text_array_has_no_blank(photos))
+    CONSTRAINT animals_photos_not_blank_check CHECK (text_array_has_no_blank(photos)),
+    CONSTRAINT animals_compatibility_is_object_check CHECK (jsonb_typeof(compatibility) = 'object')
 );
 
 COMMENT ON TABLE animals IS
     'Pet under the care of an Association. Two independent state dimensions: adoption_status and location.';
-COMMENT ON COLUMN animals.good_with_children IS 'Compatibility flag for catalog filters and Matchmaker. NULL means unknown.';
-COMMENT ON COLUMN animals.good_with_dogs IS 'Compatibility flag for catalog filters and Matchmaker. NULL means unknown.';
-COMMENT ON COLUMN animals.good_with_cats IS 'Compatibility flag for catalog filters and Matchmaker. NULL means unknown.';
+COMMENT ON COLUMN animals.compatibility IS
+    'Extensible behavioral profile and compatibility criteria (good_with_*, needs_yard, energy_level, etc.) for catalog filters and Matchmaker. Indexed via GIN jsonb_path_ops.';
 COMMENT ON COLUMN animals.photos IS 'Photo URLs in display order.';
 COMMENT ON COLUMN animals.description IS
     'Free-form story and behavioral notes; full-text indexed and parsed for Matchmaker.';
@@ -583,6 +581,9 @@ FOR EACH ROW
 EXECUTE FUNCTION animal_search_update();
 
 CREATE INDEX idx_animals_search ON animals USING GIN (tsvectors);
+
+-- Fast JSONB containment queries (@>) for catalog filtering and Matchmaker
+CREATE INDEX idx_animals_compatibility_gin ON animals USING GIN (compatibility jsonb_path_ops);
 
 -- * ====================================================
 -- * Triggers (Selective updated_at Maintenance)

@@ -91,7 +91,7 @@ This document formalizes the architectural decisions made collaboratively by the
 * **Alignment with the Matchmaker:**
   * The free text `description` column accommodates behavioral notes from the shelter without requiring dozens of sparse and rigid columns in the database.
   * An application service layer in the backend (*Write-Time Parser* / NLP) will process this text to feed the *Matchmaker* affinity algorithms.
-* **Complement (alignment review):** The catalog requires filters by size, age, and compatibility (see [[Vision]], Pillar 1), and filters need structured columns. Therefore, **only the filterable attributes** were added: `age_in_months`, `size`, `good_with_children`, `good_with_dogs`, `good_with_cats` (`NULL` means unknown), plus `temperament` and `photos`. Everything else remains in `description`.
+* **Complement (alignment review):** The catalog requires filters by size, age, and compatibility (see [[Vision]], Pillar 1). While `age_in_months`, `size`, `temperament`, and `photos` are explicit relational columns, multi-dimensional compatibility and behavioral criteria are consolidated into an extensible native `compatibility jsonb` column indexed with GIN (see Decision 12).
 
 ---
 
@@ -164,6 +164,20 @@ This document formalizes the architectural decisions made collaboratively by the
 * **Problem:** The previous version of the script **did not execute**: PostgreSQL rejects subqueries in `CHECK` constraints (`ERROR: cannot use subquery in check constraint`), and `volunteer_profiles_preferences_not_blank_check` used `NOT EXISTS (SELECT ... FROM unnest(...))`.
 * **Decision:** The validation was moved to the `IMMUTABLE` function `text_array_has_no_blank(text[])`, used by `volunteer_profiles.preferences` and `animals.photos`.
 * **Verification:** The complete script was executed in PostgreSQL 16 without errors, and the constraints, partial indexes, the view, full-text search, and the 8 triggers were tested with valid and invalid inserts.
+
+---
+
+### Decision 12: Extensible Compatibility Profile via Native JSONB and GIN Indexing (`jsonb_path_ops`)
+* **Decision:** Replace static compatibility boolean columns (`good_with_children`, `good_with_dogs`, `good_with_cats`) on `animals` with an extensible native `compatibility jsonb NOT NULL DEFAULT '{}'::jsonb` column, accompanied by a structural object check constraint (`CHECK (jsonb_typeof(compatibility) = 'object')`) and indexed with a dedicated GIN index using native `jsonb_path_ops`.
+* **Technical Justification:**
+  * **Schema Evolution & Migration Independence:** In agile development and ongoing algorithmic tuning, the matching engine continually introduces new behavioral traits (e.g., `needs_yard`, `energy_level`, `barking_tendency`, `experience_needed`, `house_trained`, `good_with_birds`, `time_alone_tolerance`, `bonded_pair`). Modeling these as rigid relational columns forces disruptive database migrations and schema churn at every iteration.
+  * **Rich Domain Model & Value Object Pattern (AGENTS.md Compliance):** In strict Domain-Driven Design and OOP, compatibility is not an independent entity with relational identity; it is a multi-dimensional `CompatibilityProfile` **Value Object** within the `Animal` Aggregate Root (matching `+Compatibility compatibility` in [[DomainModel]]). Relational identity and state machine dimensions (`adoption_status`, `location`, `association_id`) remain strictly normalized, while the behavioral profile is encapsulated.
+  * **Native PostgreSQL 16 Performance (`jsonb_path_ops` & Containment `@>`):** Both `jsonb` and `jsonb_path_ops` are 100% native PostgreSQL core features requiring zero external extensions. The `jsonb_path_ops` operator class builds compact hash-based GIN index entries that support top-speed containment queries:
+    ```sql
+    -- Fast index scan for catalog and matching:
+    SELECT * FROM animals WHERE compatibility @> '{"good_with_cats": true, "needs_yard": true}';
+    ```
+  * **Structural Integrity (Two-Tier Validation):** Relational integrity is enforced at the database level via `jsonb_typeof(compatibility) = 'object'`, while fine-grained attribute typing, enum constraints, and defaults are governed cleanly by application-layer Value Objects (Pydantic schemas in FastAPI).
 
 ---
 
