@@ -2,7 +2,7 @@
 -- Patas - Plataforma Colaborativa de Protecao Animal
 -- Baseline Database Schema, Full-Text Search (GIN) & Triggers (PostgreSQL 16)
 --
--- Aligned with: docs/DomainModel.md, docs/StateMachines.md, docs/Glossary.md
+-- Aligned with: docs/domain/DomainModel.md, docs/domain/StateMachines.md, docs/domain/Glossary.md
 -- ============================================================================
 
 ------------------------------------------------------------
