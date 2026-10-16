@@ -1,11 +1,52 @@
 import json
 import threading
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Callable, Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
+import httpx
 import pytest
-from token_issuer import TokenIssuer
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncEngine
+from token_issuer import AUDIENCE, ISSUER, TokenIssuer
+
+from patas_backend.auth.keys import JwksKeyProvider, StaticJwksKeyProvider
+from patas_backend.config import Settings
+from patas_backend.main import create_app
+
+ClientFactory = Callable[[JwksKeyProvider], httpx.AsyncClient]
+
+
+@pytest_asyncio.fixture
+async def make_client(
+    engine: AsyncEngine, migrated_database_url: str
+) -> AsyncIterator[ClientFactory]:
+    """Builds clients for the real FastAPI app, wired to the test database."""
+    settings = Settings(
+        database_url=migrated_database_url, jwt_issuer=ISSUER, jwt_audience=AUDIENCE
+    )
+    clients: list[httpx.AsyncClient] = []
+    apps = []
+
+    def build(key_provider: JwksKeyProvider) -> httpx.AsyncClient:
+        app = create_app(settings, key_provider)
+        client = httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+        )
+        apps.append(app)
+        clients.append(client)
+        return client
+
+    yield build
+    for client in clients:
+        await client.aclose()
+    for app in apps:
+        await app.state.engine.dispose()
+
+
+@pytest.fixture
+def client(make_client: ClientFactory, issuer: TokenIssuer) -> httpx.AsyncClient:
+    return make_client(StaticJwksKeyProvider(issuer.jwks()))
 
 
 @pytest.fixture
