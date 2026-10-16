@@ -37,6 +37,7 @@ async def _drop_domain_schema(url: str) -> None:
     engine = create_async_engine(url)
     async with engine.begin() as conn:
         await conn.execute(text("DROP SCHEMA IF EXISTS patas CASCADE"))
+        await conn.execute(text("DROP SCHEMA IF EXISTS patas_auth CASCADE"))
     await engine.dispose()
 
 
