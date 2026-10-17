@@ -61,6 +61,7 @@ jobs:
       - name: Run Pytest Suite
         working-directory: ./patas-backend
         env:
+          PATAS_DATABASE_URL: postgresql+asyncpg://patas_admin:securepassword@localhost:5432/patas_db
           DATABASE_URL: postgresql+asyncpg://patas_admin:securepassword@localhost:5432/patas_db
           JWT_SECRET: dev-insecure-secret-key-change-in-prod
         run: uv run pytest -v
