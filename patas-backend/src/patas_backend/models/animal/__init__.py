@@ -4,5 +4,12 @@ from patas_backend.models.animal.animal import (
     InvalidAnimal,
     Species,
 )
+from patas_backend.models.animal.repository import AnimalRepository
 
-__all__ = ["AdoptionStatus", "Animal", "InvalidAnimal", "Species"]
+__all__ = [
+    "AdoptionStatus",
+    "Animal",
+    "AnimalRepository",
+    "InvalidAnimal",
+    "Species",
+]
