@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: patas-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-patas_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-securepassword}
+      POSTGRES_DB: ${POSTGRES_DB:-patas_db}
+    ports:
+      - "5433:5432"
+    volumes:
+      - patas_pgdata:/var/lib/postgresql/data
+      - ./database/create.sql:/docker-entrypoint-initdb.d/01-create.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-patas_admin} -d${POSTGRES_DB:-patas_db}"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./patas-backend
+      dockerfile: Dockerfile
+    container_name: patas-backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-patas_admin}:${POSTGRES_PASSWORD:-securepassword}@db:5432/${POSTGRES_DB:-patas_db}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,https://patas.vercel.app}
+      JWT_SECRET: ${JWT_SECRET:-dev-insecure-secret-key-change-in-prod}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./patas-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    container_name: patas-frontend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-patas_admin}:${POSTGRES_PASSWORD:-securepassword}@db:5432/${POSTGRES_DB:-patas_db}?schema=patas
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-insecure-betterauth-secret-change-in-prod}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
+      db:
+        condition: service_healthy
+
+volumes:
+  patas_pgdata:

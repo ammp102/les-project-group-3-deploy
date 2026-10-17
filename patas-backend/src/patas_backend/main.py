@@ -8,10 +8,12 @@ from patas_backend.auth.api import router as auth_router
 from patas_backend.auth.keys import JwksKeyProvider, RemoteJwksKeyProvider
 from patas_backend.auth.verifier import JwtVerifier
 from patas_backend.config import Settings
+from patas_backend.routers import health
 
 
 def create_app(
-    settings: Settings | None = None, key_provider: JwksKeyProvider | None = None
+    settings: Settings | None = None,
+    key_provider: JwksKeyProvider | None = None,
 ) -> FastAPI:
     """Build the app. `key_provider` is the seam tests use to inject a key set."""
     settings = settings or Settings()
@@ -30,5 +32,11 @@ def create_app(
         issuer=settings.jwt_issuer,
         audience=settings.jwt_audience,
     )
+
     app.include_router(auth_router)
+    app.include_router(health.router)
+
     return app
+
+
+app = create_app()

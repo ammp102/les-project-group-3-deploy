@@ -1,0 +1,108 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend-qa:
+    name: Backend Quality Gate
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: patas_admin
+          POSTGRES_PASSWORD: securepassword
+          POSTGRES_DB: patas_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install Backend Dependencies
+        working-directory: ./patas-backend
+        run: uv sync --frozen --all-groups
+
+      - name: Format Check (Ruff Format)
+        working-directory: ./patas-backend
+        run: uv run ruff format --check .
+
+      - name: Linter Check (Ruff Check)
+        working-directory: ./patas-backend
+        run: uv run ruff check .
+
+      - name: Initialize Database Schema
+        run: |
+          PGPASSWORD=securepassword psql -h localhost -U patas_admin -d patas_db -f database/create.sql
+
+      - name: Run Pytest Suite
+        working-directory: ./patas-backend
+        env:
+          PATAS_DATABASE_URL: postgresql+asyncpg://patas_admin:securepassword@localhost:5432/patas_db
+          DATABASE_URL: postgresql+asyncpg://patas_admin:securepassword@localhost:5432/patas_db
+          JWT_SECRET: dev-insecure-secret-key-change-in-prod
+        run: uv run pytest -v
+
+  frontend-qa:
+    name: Frontend Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: patas-frontend/pnpm-lock.yaml
+
+      - name: Install Dependencies
+        working-directory: ./patas-frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (ESLint)
+        working-directory: ./patas-frontend
+        run: pnpm run lint
+
+      - name: TypeScript Typecheck
+        working-directory: ./patas-frontend
+        run: pnpm run typecheck
+
+      - name: Standalone Production Build
+        working-directory: ./patas-frontend
+        run: pnpm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_API_URL: http://localhost:8000
