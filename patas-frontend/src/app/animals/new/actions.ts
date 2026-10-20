@@ -21,18 +21,23 @@ export async function publishAnimalAction(
   const { token } = await auth.api.getToken({ headers: requestHeaders });
 
   const age = String(form.get("age_in_months") ?? "").trim();
-  const response = await fetch(`${backendUrl()}/animals`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: String(form.get("name") ?? ""),
-      species: String(form.get("species") ?? ""),
-      age_in_months: age === "" ? null : Number(age),
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${backendUrl()}/animals`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: String(form.get("name") ?? ""),
+        species: String(form.get("species") ?? ""),
+        age_in_months: age === "" ? null : Number(age),
+      }),
+    });
+  } catch {
+    return { error: "The service is unavailable, please try again." };
+  }
 
   if (response.status === 422) {
     // The domain's rule errors are a string; FastAPI's type errors are a list.
