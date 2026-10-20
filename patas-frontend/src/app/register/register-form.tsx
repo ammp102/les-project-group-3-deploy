@@ -25,7 +25,7 @@ export function RegisterForm() {
       setError(error.message ?? "Registration failed");
       return;
     }
-    router.push("/");
+    router.push("/dashboard");
   }
 
   return (
