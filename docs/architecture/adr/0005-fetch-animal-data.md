@@ -15,11 +15,14 @@ and exposes it through an HTTP API.
 
 ## Decisions
 
-1. **The Next.js dashboard fetches data server-side.** The `/dashboard` page calls
+1. **The Next.js catalog fetches data server-side.** The public `/animals` page calls
    `GET /animals` from its server-rendered component. In Docker Compose it addresses
    the backend using `BACKEND_URL=http://backend:8000`; it does not send the database
    connection or this request through the user's browser. The page disables fetch
-   caching so each request reads current backend data.
+   caching so each request reads current backend data. The "Publish an animal"
+   button appears only to logged-in users; `/animals/new` and its Server Action
+   check the session themselves, and the action calls `POST /animals` with the
+   session's JWT as a Bearer token.
 2. **FastAPI exposes a read-only collection endpoint.** The animals router registers
    `GET /animals` and returns a JSON array.
    The route delegates to `AnimalService.list_catalog`, which opens a session from
@@ -51,7 +54,7 @@ and exposes it through an HTTP API.
 
 ```mermaid
 flowchart LR
-    Browser -->|GET /dashboard| Dashboard["Next.js dashboard"]
+    Browser -->|GET /animals| Dashboard["Next.js dashboard"]
     Dashboard -->|GET /animals| Router["FastAPI animals router"]
     Router --> Service["AnimalService.list_catalog"]
     Service -->|create session| Factory["App async session factory"]
