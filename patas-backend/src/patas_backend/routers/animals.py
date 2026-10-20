@@ -1,19 +1,27 @@
-from collections.abc import AsyncIterator
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from patas_backend.auth.dependencies import get_current_user
 from patas_backend.models.animal import (
     AdoptionStatus,
     Animal,
-    AnimalRepository,
+    InvalidAnimal,
     Species,
 )
+from patas_backend.models.user import User
+from patas_backend.services.animals import AnimalService
 
 router = APIRouter()
+
+
+class PublishAnimalRequest(BaseModel):
+    # Types only. The business rules (non-blank name, age >= 0) live in the domain.
+    name: str
+    species: Species
+    age_in_months: int | None = None
 
 
 class AnimalResponse(BaseModel):
@@ -36,15 +44,35 @@ class AnimalResponse(BaseModel):
         )
 
 
-async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
-    async with request.app.state.session_factory() as session:
-        yield session
+def get_animal_service(request: Request) -> AnimalService:
+    return AnimalService(request.app.state.session_factory)
 
 
 @router.get("/animals", response_model=list[AnimalResponse])
 async def list_animals(
-    session: Annotated[AsyncSession, Depends(get_session)],
+    service: Annotated[AnimalService, Depends(get_animal_service)],
 ) -> list[AnimalResponse]:
     """The public catalog: no authentication dependency (AC5)."""
-    animals = await AnimalRepository(session).list_all()
-    return [AnimalResponse.from_domain(animal) for animal in animals]
+    return [AnimalResponse.from_domain(a) for a in await service.list_catalog()]
+
+
+@router.post(
+    "/animals", status_code=status.HTTP_201_CREATED, response_model=AnimalResponse
+)
+async def publish_animal(
+    body: PublishAnimalRequest,
+    owner: Annotated[User, Depends(get_current_user)],
+    service: Annotated[AnimalService, Depends(get_animal_service)],
+) -> AnimalResponse:
+    try:
+        animal = await service.publish(
+            owner,
+            name=body.name,
+            species=body.species,
+            age_in_months=body.age_in_months,
+        )
+    except InvalidAnimal as error:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, str(error)
+        ) from error
+    return AnimalResponse.from_domain(animal)
