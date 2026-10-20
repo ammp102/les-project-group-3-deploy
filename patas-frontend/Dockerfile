@@ -21,6 +21,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN mkdir -p /app/public
 RUN pnpm run build
 
+FROM node:22-alpine AS migrator
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+CMD ["pnpm", "dlx", "auth@latest", "migrate", "-y"]
+
 FROM node:20-alpine AS runner
 WORKDIR /app
 

@@ -11,7 +11,6 @@ services:
       - "5433:5432"
     volumes:
       - patas_pgdata:/var/lib/postgresql/data
-      - ./database/create.sql:/docker-entrypoint-initdb.d/01-create.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-patas_admin} -d${POSTGRES_DB:-patas_db}"]
       interval: 3s
@@ -34,6 +33,20 @@ services:
       db:
         condition: service_healthy
 
+  frontend-migrate:
+    profiles: ["migrations"]
+    build:
+      context: ./patas-frontend
+      dockerfile: Dockerfile
+      target: migrator
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-patas_admin}:${POSTGRES_PASSWORD:-securepassword}@db:5432/${POSTGRES_DB:-patas_db}?schema=patas
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-insecure-betterauth-secret-change-in-prod}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./patas-frontend
@@ -46,6 +59,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-patas_admin}:${POSTGRES_PASSWORD:-securepassword}@db:5432/${POSTGRES_DB:-patas_db}?schema=patas
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-insecure-betterauth-secret-change-in-prod}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BACKEND_URL: http://backend:8000
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
       - "3000:3000"

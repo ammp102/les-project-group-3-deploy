@@ -57,10 +57,6 @@ jobs:
         working-directory: ./patas-backend
         run: uv run ruff check .
 
-      - name: Initialize Database Schema
-        run: |
-          PGPASSWORD=securepassword psql -h localhost -U patas_admin -d patas_db -f database/create.sql
-
       - name: Run Pytest Suite
         working-directory: ./patas-backend
         env:
