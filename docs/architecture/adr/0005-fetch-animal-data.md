@@ -5,7 +5,7 @@
 | **Status** | Accepted |
 | **Date** | 2026-10-20 |
 | **Scope** | Animal listing vertical slice |
-| **Related** | [[0001-authentication]], [[0002-deployment-and-runtime-architecture]], [[0004-animal-aggregate]] |
+| **Related** | [[0001-authentication]], [[0002-deployment-and-runtime-architecture]], [[0004-animal-aggregate]], [[0006-application-services]] |
 
 ## Context
 
@@ -22,8 +22,9 @@ and exposes it through an HTTP API.
    caching so each request reads current backend data.
 2. **FastAPI exposes a read-only collection endpoint.** The animals router registers
    `GET /animals` and returns a JSON array.
-   The route obtains an `AsyncSession` from the session factory configured when the
-   app is created, then delegates retrieval to `AnimalRepository`.
+   The route delegates to `AnimalService.list_catalog`, which opens a session from
+   the app's session factory and reads through `AnimalRepository`
+   ([[0006-application-services]]).
 3. **The repository owns database reads and row mapping.** `AnimalRepository` issues
    an explicit SQL `SELECT` against `patas.animals`, newest first, and maps rows into
    domain `Animal` objects. It never commits; the caller owns the transaction.
@@ -52,11 +53,13 @@ and exposes it through an HTTP API.
 flowchart LR
     Browser -->|GET /dashboard| Dashboard["Next.js dashboard"]
     Dashboard -->|GET /animals| Router["FastAPI animals router"]
-    Router -->|create session| Factory["App async session factory"]
-    Router --> Repository["AnimalRepository"]
+    Router --> Service["AnimalService.list_catalog"]
+    Service -->|create session| Factory["App async session factory"]
+    Service --> Repository["AnimalRepository"]
     Repository -->|SELECT patas.animals| Database[("PostgreSQL")]
     Repository -->|map rows| Domain["Animal / Species"]
-    Domain --> Router
+    Domain --> Service
+    Service --> Router
     Router -->|JSON array| Dashboard
     Dashboard -->|render animal cards| Browser
     Migration["Alembic revision 0003"] -. "creates schema" .-> Database
