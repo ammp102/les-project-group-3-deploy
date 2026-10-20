@@ -25,6 +25,10 @@ services:
     restart: always
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-patas_admin}:${POSTGRES_PASSWORD:-securepassword}@db:5432/${POSTGRES_DB:-patas_db}
+      # Keys come from the frontend container; iss/aud are the public URL Better-Auth signs with.
+      PATAS_JWKS_URL: http://frontend:3000/api/auth/jwks
+      PATAS_JWT_ISSUER: ${BETTER_AUTH_URL:-http://localhost:3000}
+      PATAS_JWT_AUDIENCE: ${BETTER_AUTH_URL:-http://localhost:3000}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,https://patas.vercel.app}
       JWT_SECRET: ${JWT_SECRET:-dev-insecure-secret-key-change-in-prod}
     ports:

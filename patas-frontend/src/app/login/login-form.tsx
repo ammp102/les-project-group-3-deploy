@@ -24,7 +24,7 @@ export function LoginForm() {
       setError(error.message ?? "Login failed");
       return;
     }
-    router.push("/dashboard");
+    router.push("/animals");
   }
 
   return (

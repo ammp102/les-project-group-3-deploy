@@ -56,4 +56,21 @@ assert.equal(second.id, user.id, "second call must return the same user");
 const tampered = token.slice(0, -1) + (token.endsWith("A") ? "B" : "A");
 assert.equal((await me(tampered)).status, 401, "tampered token must be 401");
 
-console.log(`OK: ${email} registered, authenticated and provisioned as ${user.id}`);
+// 7. The token publishes an animal, which the public catalog lists (AC1, AC5).
+const published = await fetch(`${API}/animals`, {
+  method: "POST",
+  headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+  body: JSON.stringify({ name: "Smoke Rex", species: "dog", age_in_months: 3 }),
+});
+assert.equal(published.status, 201, `publish failed: ${await published.clone().text()}`);
+const animal = await published.json();
+assert.equal(animal.owner_id, user.id, "publisher must be the owner");
+const catalog = await (await fetch(`${API}/animals`)).json();
+assert.ok(
+  catalog.some((a) => a.id === animal.id),
+  "published animal must be in the public catalog",
+);
+
+console.log(
+  `OK: ${email} registered, authenticated, provisioned as ${user.id} and published ${animal.id}`,
+);

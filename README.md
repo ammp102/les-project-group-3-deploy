@@ -37,6 +37,11 @@ production secrets.
 
 ### First-time setup
 
+> **Upgrading an existing checkout?** Older setups created the database from
+> `database/create.sql`, and an earlier `0003` migration created a different animal
+> table. Both are incompatible with the current migrations: reset the local
+> database once with `docker compose down -v` (this deletes local data).
+
 1. Start PostgreSQL and wait for its health check:
 
    ```sh
@@ -75,9 +80,25 @@ production secrets.
    docker compose ps
    ```
 
-   Open <http://localhost:3000/register> to create an account, then sign in at
-   <http://localhost:3000/login>. The frontend is on port `3000`, the backend API is
-   on port `8000`, and PostgreSQL is published on port `5433`.
+   The frontend is on port `3000`, the backend API is on port `8000`, and
+   PostgreSQL is published on port `5433`.
+
+### Demo: publish an animal and see it in the catalog
+
+1. Open <http://localhost:3000>. Visitors land on the public catalog (`/animals`).
+2. Create an account at `/register`; you are taken back to the catalog, which now
+   shows **Publish an animal**.
+3. Publish an animal (name, species, optional age). It appears in the catalog as
+   `available`, owned by you. A blank name is rejected by the backend's domain and
+   nothing is stored.
+4. Log out (clear the site cookies) and reload: the animal is still listed.
+
+Optional: `pnpm seed:demo` (in `patas-frontend`, with the stack running) fills the
+catalog with sample animals published by three demo users through the application.
+Their password is printed by the script and is for local use only.
+
+`pnpm smoke:auth` (in `patas-frontend`, with the stack running) checks the same
+handoff automatically.
 
 ### Applying migrations after updates
 
