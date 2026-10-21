@@ -95,7 +95,7 @@
   * **The algorithm's design is intentionally left open at this stage** and will be detailed later. Envisioned direction: a swipe-based discovery experience ("Tinder-style") in which the user's choices refine future suggestions.
 
 * **Adoption Tracker (End-to-End Transparency):**
-  * Visual timeline for the applicant, in the style of parcel tracking (see the application state machine in [[#6. State Models|Section 6]]).
+  * Visual timeline for the applicant, in the style of parcel tracking (see the application state machine in [Section 6](#6-state-models)).
   * Notifications at every stage change, delivered **by email and in-app** (notification center within the platform), removing uncertainty and follow-up messages to the association.
   * The applicant always knows the outcome, including rejections and when the animal has been adopted by someone else.
   * The timeline is built from the application's status history, so every stage change is recorded with its date.
@@ -109,7 +109,7 @@
   * **The adopter requests it; the association approves or declines it** for each application.
   * The association may set a **trial-period fee**, paid online through the platform (**Stripe, in test mode**, given the academic context of the project).
   * During the trial, the association follows up on the adaptation through the platform (check-ins, notes, trial end date), minimizing returns after definitive adoption.
-  * The trial has its own lifecycle (`Requested → Approved → Active → Succeeded/Failed`, or `Declined`/`Cancelled`). The application only enters `Trial Period` once the trial is `Active` (approved and, if a fee applies, paid). If the trial is declined or cancelled, the application simply continues in `Interview` (e.g., toward a direct adoption). See [[StateMachines]].
+  * The trial has its own lifecycle (`Requested → Approved → Active → Succeeded/Failed`, or `Declined`/`Cancelled`). The application only enters `Trial Period` once the trial is `Active` (approved and, if a fee applies, paid). If the trial is declined or cancelled, the application simply continues in `Interview` (e.g., toward a direct adoption). See [StateMachines](../domain/StateMachines.md).
 
 * **Parametric Temporary Fostering Engine (Foster Families):**
   * Volunteer families register their availability with flexible parameters:
@@ -153,7 +153,7 @@
 * **Application Kanban Board:**
   * Column view by application state to move applications, add private screening notes and trigger automatic updates to the adopter.
 * **Integrated Animal Management:**
-  * Animal registration and editing, with the state model described in [[#6. State Models|Section 6]].
+  * Animal registration and editing, with the state model described in [Section 6](#6-state-models).
 * **Volunteer and Roster Hub:**
   * Global view of attendance and active sign-ups per day and shift.
 * **Foster-to-Adopt Settings:**
@@ -163,7 +163,7 @@
 
 ## 6. State Models
 
-> **Normative source:** the detailed diagrams, transition rules and cross-machine synchronization live in [[StateMachines]]. This section summarizes them.
+> **Normative source:** the detailed diagrams, transition rules and cross-machine synchronization live in [StateMachines](../domain/StateMachines.md). This section summarizes them.
 >
 > **Decision recorded:** the original vision mixed temporary fostering and the adoption trial in a single animal state. Option B below (two independent dimensions) is adopted.
 >
@@ -220,7 +220,7 @@ Closed               : from Submitted, Screening, On Hold (animal adopted by som
 
 ### 6.3 Supporting state machines
 
-Trial Period, Foster Assignment, Pledge and Association Verification are defined in [[StateMachines]].
+Trial Period, Foster Assignment, Pledge and Association Verification are defined in [StateMachines](../domain/StateMachines.md).
 
 ---
 
@@ -258,7 +258,7 @@ To ensure success within a 4-Sprint schedule (8 weeks of development), the broad
 ## 9. Non-Functional Requirements & Constraints
 
 * **Data protection (GDPR):** applications contain personal and housing data; access is restricted to the applicant and the staff of the association concerned.
-* **Data isolation:** each association only accesses its own data (see [[#4. Platform Model (Multiple Associations)|Section 4]]).
+* **Data isolation:** each association only accesses its own data (see [Section 4](#4-platform-model-multiple-associations)).
 * **Responsive web:** usable on mobile browsers.
 * **Accessibility:** follow basic web accessibility guidelines.
 * **Notifications:** email and in-app.
@@ -282,10 +282,10 @@ To ensure success within a 4-Sprint schedule (8 weeks of development), the broad
 
 | Document | Purpose |
 | :--- | :--- |
-| [[Glossary]] | Ubiquitous Language: exact names used in code and stories |
-| [[DomainModel]] | Aggregates, entities and relationships |
-| [[StateMachines]] | Normative lifecycles and cross-machine rules |
-| [[PrototypeFlows_Fostering_Donations]] | Happy paths for the Fostering and Wishlist prototype |
+| [Glossary](../domain/Glossary.md) | Ubiquitous Language: exact names used in code and stories |
+| [DomainModel](../domain/DomainModel.md) | Aggregates, entities and relationships |
+| [StateMachines](../domain/StateMachines.md) | Normative lifecycles and cross-machine rules |
+| [PrototypeFlows_Fostering_Donations](PrototypeFlows_Fostering_Donations.md) | Happy paths for the Fostering and Wishlist prototype |
 
 ---
 

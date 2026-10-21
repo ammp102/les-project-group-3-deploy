@@ -1,6 +1,6 @@
 # Prototyping Flows: Temporary Fostering & Donations
 
-This document outlines the core UI/UX "Happy Paths" required for the MVP prototype, plus the main alternative paths and open questions. Terms are defined in [[Glossary]]; transitions in [[StateMachines]].
+This document outlines the core UI/UX "Happy Paths" required for the MVP prototype, plus the main alternative paths and open questions. Terms are defined in [Glossary](../domain/Glossary.md); transitions in [StateMachines](../domain/StateMachines.md).
 
 ## Preconditions (shared foundations)
 

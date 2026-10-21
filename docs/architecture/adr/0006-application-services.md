@@ -5,7 +5,7 @@
 | **Status** | Accepted |
 | **Date** | 2026-10-20 |
 | **Scope** | Backend layering, every router |
-| **Related** | [[VerticalPrototypeSpec]] §3.2, [[0004-animal-aggregate]], [[0005-fetch-animal-data]] |
+| **Related** | [VerticalPrototypeSpec](../../integrations/vertical-prototype/VerticalPrototypeSpec.md) §3.2, [0004-animal-aggregate](0004-animal-aggregate.md), [0005-fetch-animal-data](0005-fetch-animal-data.md) |
 
 ## Context
 
@@ -30,7 +30,7 @@ end up in HTTP code, or the domain would need database access.
    validate. Request models check types only, so `InvalidAnimal` from the domain is
    the single source of a 422 for rule violations.
 5. **Exception:** authentication provisioning (`get_current_user`) keeps its own
-   short transaction, by design in [[0001-authentication]].
+   short transaction, by design in [0001-authentication](0001-authentication.md).
 
 ## Consequences
 

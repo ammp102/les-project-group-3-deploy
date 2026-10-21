@@ -5,7 +5,7 @@
 | **Status** | Accepted |
 | **Date** | 2026-10-20 |
 | **Scope** | Animal listing vertical slice |
-| **Related** | [[0001-authentication]], [[0002-deployment-and-runtime-architecture]], [[0004-animal-aggregate]], [[0006-application-services]] |
+| **Related** | [0001-authentication](0001-authentication.md), [0002-deployment-and-runtime-architecture](0002-deployment-and-runtime-architecture.md), [0004-animal-aggregate](0004-animal-aggregate.md), [0006-application-services](0006-application-services.md) |
 
 ## Context
 
@@ -27,12 +27,12 @@ and exposes it through an HTTP API.
    `GET /animals` and returns a JSON array.
    The route delegates to `AnimalService.list_catalog`, which opens a session from
    the app's session factory and reads through `AnimalRepository`
-   ([[0006-application-services]]).
+   ([0006-application-services](0006-application-services.md)).
 3. **The repository owns database reads and row mapping.** `AnimalRepository` issues
    an explicit SQL `SELECT` against `patas.animals`, newest first, and maps rows into
    domain `Animal` objects. It never commits; the caller owns the transaction.
 4. **The domain model is independent of persistence.** `Animal` is the aggregate from
-   [[0004-animal-aggregate]]: species `dog`, `cat` or `other`, an optional age in
+   [0004-animal-aggregate](0004-animal-aggregate.md): species `dog`, `cat` or `other`, an optional age in
    months, and an adoption status that starts `available`. It trims names and rejects
    blank names and negative ages. `AnimalResponse.from_domain` serializes it for the
    frontend.

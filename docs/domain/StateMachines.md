@@ -12,7 +12,7 @@ Machines covered:
 6. Wishlist Item and Pledge (Solidarity Wishlist)
 7. Association Verification
 
-[[#8. Cross-Machine Rules|Section 8]] defines the rules that keep these machines consistent with each other.
+[Section 8](#8-cross-machine-rules) defines the rules that keep these machines consistent with each other.
 
 > The `Deceased` animal state is intentionally omitted to focus purely on actionable adoption states (Vision, Decision D5).
 
@@ -111,7 +111,7 @@ Notes:
 * **Reservation rule:** moving an application to `Interview` reserves the animal. Only one application per animal can be in `Interview` or `TrialPeriod`; all other open applications go `OnHold`.
 * When an application is released from `OnHold`, it resumes at the stage recorded in its status history (`application_status_changes`).
 * `Closed` applies only to applications that never reserved the animal (`Submitted`, `Screening`, `OnHold`). The reserved application can never be closed by another adoption.
-* If the trial is declined or cancelled (see [[#4. Trial Period (Foster-to-Adopt)|section 4]]), the application stays in `Interview`.
+* If the trial is declined or cancelled (see [section 4](#4-trial-period-foster-to-adopt)), the application stays in `Interview`.
 * Every transition is recorded in the application's status history (feeds the Adoption Tracker) and generates an email and an in-app notification.
 
 ## 4. Trial Period (Foster-to-Adopt)
@@ -284,4 +284,4 @@ To implement these machines without massive `if/switch` blocks:
 * Example for the animal: `AnimalAdoptionState` exposes `reserve()`, `startTrial()`, `completeAdoption()`, `release()`, `markUnavailable()`, `returnAnimal()`; concrete classes are `AvailableState`, `ReservedState`, `InTrialState`, `AdoptedState`, `UnavailableState`.
 * If an invalid operation is called (e.g. `startTrial()` on `AvailableState`), the state object throws a Domain Exception, ensuring strict adherence to the rules above.
 * The `Animal` aggregate holds **two** state objects (adoption status and location).
-* Each state class should be unit-tested in isolation; the cross-machine rules in [[#8. Cross-Machine Rules|section 8]] need a small set of integration tests.
+* Each state class should be unit-tested in isolation; the cross-machine rules in [section 8](#8-cross-machine-rules) need a small set of integration tests.

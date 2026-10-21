@@ -5,7 +5,7 @@
 | **Project** | Patas: Collaborative Animal Welfare Platform |
 | **Context** | MESW, Software Engineering Laboratory (2026/27), 4 sprints (about 8 weeks) |
 | **Status** | DRAFT: pending team confirmation and teacher approval |
-| **Relation to [[Vision]]** | Scope reduction and product pivot for the MVP only. [[Vision]] remains the long-term vision; this document overrides it wherever they conflict, for the MVP. |
+| **Relation to [Vision](Vision.md)** | Scope reduction and product pivot for the MVP only. [Vision](Vision.md) remains the long-term vision; this document overrides it wherever they conflict, for the MVP. |
 
 > **Approval note:** per `AGENTS.md` §6, business-logic decisions must be aligned by the whole team before implementation. Section 1 records what was decided; everything marked *Derived* follows from those decisions; everything in Section 11 is still open.
 
@@ -49,7 +49,7 @@
 
 ## 3. Problems Addressed (MVP)
 
-The association-side pains of [[Vision]] §2 (spreadsheets, multichannel chaos, manual screening at scale) no longer apply. The MVP addresses:
+The association-side pains of [Vision](Vision.md) §2 (spreadsheets, multichannel chaos, manual screening at scale) no longer apply. The MVP addresses:
 
 **Adopter side**
 1. **Application "black hole":** no feedback on whether the request was received, is under review or is closed. *Answered by the Adoption Tracker.*
@@ -85,7 +85,7 @@ Effort: S (a few days), M (about 1 sprint for 1-2 people), L (more than 1 sprint
 
 | ID | Feature | Effort | Notes |
 | :-- | :-- | :-: | :-- |
-| F1 | Authentication and registration | M | Better-Auth with JWT handoff (see [[AuthenticationResearch]]). Depends on the stack decision (§11). |
+| F1 | Authentication and registration | M | Better-Auth with JWT handoff (see [AuthenticationResearch](../research/AuthenticationResearch.md)). Depends on the stack decision (§11). |
 | F2 | User profile and admin flag | S | Single `User` aggregate; admin is a platform flag. |
 | F3 | Non-functional baseline | M | Docker Compose, responsive layout, basic accessibility, GDPR access rules, CI with linters and specification tests. |
 | A1 | Animal listing management (owner) | M | Create, edit, unpublish. Photos. Adoption status as a State pattern. |
@@ -100,7 +100,7 @@ Effort: S (a few days), M (about 1 sprint for 1-2 people), L (more than 1 sprint
 
 | ID | Feature | Effort | Notes |
 | :-- | :-- | :-: | :-- |
-| M1 | Matchmaker quiz and rule-based matching | M | Hard filters, weighted score, explanation badges. Strategy pattern ([[MatchingAlgorithms]]). Visitors: session only. |
+| M1 | Matchmaker quiz and rule-based matching | M | Hard filters, weighted score, explanation badges. Strategy pattern ([MatchingAlgorithms](../research/MatchingAlgorithms.md)). Visitors: session only. |
 | M2 | Saved Matchmaker profile for Citizens | S | Includes household composition (children, dogs, cats). |
 | T1 | Foster-to-Adopt trial | M | **Owner approves or declines** the request. No fee, no payment. Check-ins while active. |
 | A8 | Owner's application list | S | Applications received, grouped by status, with actions. Not a drag-and-drop Kanban. |
@@ -172,7 +172,7 @@ Keeping a separate location would duplicate the status and allow contradictory s
 ### In the MVP
 Authentication, user-owned catalogs, public catalog with filters, structured compatibility profile, adoption applications with the full state machine, Adoption Tracker, in-app (and email) notifications, Matchmaker, Foster-to-Adopt trial without payment, moderation.
 
-### Removed from the MVP (vs. [[Vision]])
+### Removed from the MVP (vs. [Vision](Vision.md))
 Association registration and verification, staff roles and association isolation, Kanban drag-and-drop, Foster family engine, volunteering (walks and roster), solidarity wishlist and pledges, trial fee and Stripe.
 
 ### Out of scope (unchanged)
@@ -192,7 +192,7 @@ Chat between users (notifications and the tracker substitute it in the MVP), swi
 | **Wishlist** | Needs and pledges, for associations | Needs the association concept to limit abuse. |
 | **Volunteering** | Walks and roster | Needs associations or facilities. |
 | **Trial fee** | Payment through Stripe (test mode) | Optional. |
-| **Matching extensions** | Swipe, LLM extraction, screening dossier, soulmate notifications | See [[MatchingAlgorithms]]. |
+| **Matching extensions** | Swipe, LLM extraction, screening dossier, soulmate notifications | See [MatchingAlgorithms](../research/MatchingAlgorithms.md). |
 
 ---
 
@@ -217,8 +217,8 @@ Chat between users (notifications and the tracker substitute it in the MVP), swi
 3. **Contact visibility:** reveal applicant contact from `Interview` (proposed), or earlier or later?
 4. **Listing limits per user** and numeric value (A10).
 5. **Admin moderation model:** does `Report` become its own aggregate, and what are the states (`Open`, `Resolved`, `Dismissed`)?
-6. **Frontend stack:** [[AuthenticationResearch]] assumes Next.js, but `patas-frontend` is a Vite and React scaffold. Better-Auth needs a Node runtime, so confirm the stack before F1. Needs an ADR.
-7. **Decision D1** (referenced in [[Vision]] §7 but never defined) is resolved by this document: the Foster Engine, Operational Roster and Volunteer Hub are post-MVP.
+6. **Frontend stack:** [AuthenticationResearch](../research/AuthenticationResearch.md) assumes Next.js, but `patas-frontend` is a Vite and React scaffold. Better-Auth needs a Node runtime, so confirm the stack before F1. Needs an ADR.
+7. **Decision D1** (referenced in [Vision](Vision.md) §7 but never defined) is resolved by this document: the Foster Engine, Operational Roster and Volunteer Hub are post-MVP.
 
 ---
 
@@ -239,11 +239,11 @@ These documents still describe the association-based model and must be updated o
 
 | Document | Required change |
 | :-- | :-- |
-| [[Vision]] | Mark as long-term vision, point to this document; or revise statement, actors, pillars, platform model, prioritization table, out-of-scope. |
-| [[DomainModel]] | Remove association, staff, wishlist, foster and volunteer elements; add `ownerId`; remove `location` (`Animal` holds one state object); add `Report`. |
-| [[StateMachines]] | Remove machines 2 (location), 5, 6 and 7; simplify trial; drop location effects from the trial table and from the cross-machine rules and invariants; update the State pattern notes (one state object per animal). |
-| [[PrototypeFlows_Fostering_Donations]] | Becomes post-MVP reference; MVP flows (publish animal, apply, track, trial) to be written. |
-| [[Glossary]] | Remove association terms; add owner, report. |
-| [[DatabaseDesignDecisions]] and `database/create.sql` | Remove association tables; `animals.owner_id` references `users`; drop the `location` column if present; add reports. Check every table that references `association_id`. |
-| [[MatchingAlgorithms]] | Replace "shelter seniority" with listing age; "staff" becomes "owner". |
+| [Vision](Vision.md) | Mark as long-term vision, point to this document; or revise statement, actors, pillars, platform model, prioritization table, out-of-scope. |
+| [DomainModel](../domain/DomainModel.md) | Remove association, staff, wishlist, foster and volunteer elements; add `ownerId`; remove `location` (`Animal` holds one state object); add `Report`. |
+| [StateMachines](../domain/StateMachines.md) | Remove machines 2 (location), 5, 6 and 7; simplify trial; drop location effects from the trial table and from the cross-machine rules and invariants; update the State pattern notes (one state object per animal). |
+| [PrototypeFlows_Fostering_Donations](PrototypeFlows_Fostering_Donations.md) | Becomes post-MVP reference; MVP flows (publish animal, apply, track, trial) to be written. |
+| [Glossary](../domain/Glossary.md) | Remove association terms; add owner, report. |
+| [DatabaseDesignDecisions](../architecture/DatabaseDesignDecisions.md) and `database/create.sql` | Remove association tables; `animals.owner_id` references `users`; drop the `location` column if present; add reports. Check every table that references `association_id`. |
+| [MatchingAlgorithms](../research/MatchingAlgorithms.md) | Replace "shelter seniority" with listing age; "staff" becomes "owner". |
 | **New** | ADR for MD2 (pure marketplace); ADR for MD4 (dropping the location machine); ADR for the frontend stack. |

@@ -5,7 +5,7 @@
 | **Project** | Patas: Collaborative Animal Welfare Platform |
 | **Context** | MESW, Software Engineering Laboratory (2026/27), Integration 0 sprint review |
 | **Status** | DRAFT: slice chosen by the team; two technical decisions (§7) still pending confirmation |
-| **Related documents** | [[MVPVision]] (A1, A2), [[AuthenticationResearch]], [[DEFINITION_OF_DONE]], [[DatabaseDesignDecisions]] |
+| **Related documents** | [MVPVision](../../product/MVPVision.md) (A1, A2), [AuthenticationResearch](../../research/AuthenticationResearch.md), [DEFINITION_OF_DONE](../../process/DEFINITION_OF_DONE.md), [DatabaseDesignDecisions](../../architecture/DatabaseDesignDecisions.md) |
 
 ---
 
@@ -69,13 +69,13 @@ flowchart LR
 Layers: **router → application service → domain → repository**.
 
 * **Domain:** the `Animal` entity enforces its own invariants (non-blank name, age greater than or equal to 0, starts `available`). No anemic model (`AGENTS.md` §2).
-* **Auth dependency:** verifies the JWT signature and extracts `sub` and `email`. If no `patas.users` row exists for `sub`, it creates one (JIT provisioning, see [[AuthenticationResearch]] §4).
+* **Auth dependency:** verifies the JWT signature and extracts `sub` and `email`. If no `patas.users` row exists for `sub`, it creates one (JIT provisioning, see [AuthenticationResearch](../../research/AuthenticationResearch.md) §4).
 * **Repository:** SQLAlchemy async with asyncpg.
 * **Endpoints:** `POST /animals` (authenticated), `GET /animals` (public).
 
 ### 3.3 Database
 
-An Alembic migration creates only what the slice needs: `users` and `animals` (with `owner_id` referencing `users`, per decisions MD1 and MD2 of [[MVPVision]]). The status column uses the existing `adoption_status` values.
+An Alembic migration creates only what the slice needs: `users` and `animals` (with `owner_id` referencing `users`, per decisions MD1 and MD2 of [MVPVision](../../product/MVPVision.md)). The status column uses the existing `adoption_status` values.
 
 ## 4. Test Strategy (DoD #3)
 
@@ -110,5 +110,5 @@ Both are structural decisions and need an ADR (`AGENTS.md` §6, DoD #7).
 
 ## 8. Known Gaps
 
-* [[MVPVision]] is still a draft, and `database/create.sql`, [[DomainModel]] and [[StateMachines]] still describe the association model. The slice follows the MVP Vision decisions (owner is a `User`).
+* [MVPVision](../../product/MVPVision.md) is still a draft, and `database/create.sql`, [DomainModel](../../domain/DomainModel.md) and [StateMachines](../../domain/StateMachines.md) still describe the association model. The slice follows the MVP Vision decisions (owner is a `User`).
 * The business logic of this slice is minimal (field validation only). Agreement on it is recorded as DoD #2 evidence in the PR.
