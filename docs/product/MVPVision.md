@@ -4,7 +4,7 @@
 | :--- | :--- |
 | **Project** | Patas: Collaborative Animal Welfare Platform |
 | **Context** | MESW, Software Engineering Laboratory (2026/27), 4 sprints (about 8 weeks) |
-| **Status** | DRAFT: pending team confirmation and teacher approval |
+| **Status** | APPROVED: confirmed by the team and the teacher |
 | **Relation to [Vision](Vision.md)** | Scope reduction and product pivot for the MVP only. [Vision](Vision.md) remains the long-term vision; this document overrides it wherever they conflict, for the MVP. |
 
 > **Approval note:** per `AGENTS.md` §6, business-logic decisions must be aligned by the whole team before implementation. Section 1 records what was decided; everything marked *Derived* follows from those decisions; everything in Section 11 is still open.
@@ -212,7 +212,7 @@ Chat between users (notifications and the tracker substitute it in the MVP), swi
 
 ## 11. Open Questions (to decide before implementation)
 
-1. **Teacher approval of the pivot.** Does the course brief or an earlier approval require associations? If so, this must be presented as an approved scope change, not a detail.
+1. **Teacher approval of the pivot.** *Resolved:* the teacher approved the scope change.
 2. **Trial approval state:** keep `Requested → Approved → Active`, or simplify to `Requested → Active` since there is no payment step?
 3. **Contact visibility:** reveal applicant contact from `Interview` (proposed), or earlier or later?
 4. **Listing limits per user** and numeric value (A10).
