@@ -1,4 +1,91 @@
-# LES-C
+# Patas: Collaborative Animal Welfare Platform
+
+MESW, Software Engineering Laboratory (2026/27), Group 3.
+
+## Vision
+
+> Patas is a collaborative web platform that centralizes and simplifies the entire
+> animal care and adoption cycle, for people looking to adopt, foster or care for
+> animals and for the associations that protect them.
+
+The long-term vision rests on four options: **Adopt** (with smart lifestyle matching
+and an optional Foster-to-Adopt trial), **Foster** (families hosting animals for a
+period), **Care** (volunteers walking, feeding and transporting animals) and
+**Contribute** (a wishlist of supplies associations need). Applicants follow their
+process in real time through the **Adoption Tracker**, ending the "black hole" of
+unanswered applications.
+
+Full document: [Product Vision](docs/product/Vision.md).
+
+## MVP Vision: what we had to let go
+
+Eight weeks (4 sprints) cannot deliver the full vision, so the MVP pivots to a
+**peer-to-peer adoption marketplace**: any registered user can publish animals they
+need to rehome, and anyone can find and adopt one. We kept what answers the adopter's
+main pains and cut everything that depended on associations.
+
+| Let go | Why | Returns with |
+| :-- | :-- | :-- |
+| Associations: registration, verification, staff roles, data isolation | An animal's owner is now a `User` (MD1–MD3). Abstractions for associations would solve a problem the MVP no longer has, and the later migration is cheap. | Associations increment |
+| Fostering: foster family engine and the animal location state machine | Without fostering, location is fully derived from adoption status. A separate machine would allow contradictory states (MD4). | Fostering increment |
+| Volunteering: walks, operational roster, volunteer hub | Needs associations or facilities to organize shifts. | Volunteering increment |
+| Solidarity wishlist and pledges | Needs the association concept to limit abuse. | Wishlist increment |
+| Trial fee and Stripe payments | The trial stays, approved by the owner, but with no fee. | Trial fee increment |
+| Kanban board for applications | Replaced by a simpler owner's application list. | — |
+
+**What stays:** authentication, public catalog with filters, adoption applications with
+their full state machine, Adoption Tracker, in-app and email notifications, the
+Matchmaker, and the Foster-to-Adopt trial. **New in the MVP:** moderation (reporting
+listings and users), because no organization stands behind a listing anymore.
+
+Full document: [MVP Vision](docs/product/MVPVision.md).
+
+## Documentation
+
+### Product
+
+| Document | What it covers |
+| :-- | :-- |
+| [Vision](docs/product/Vision.md) | Long-term product vision, pillars, actors and state models |
+| [MVP Vision](docs/product/MVPVision.md) | Scope pivot, MVP feature set and sprint plan |
+| [Prototype flows: fostering and donations](docs/product/PrototypeFlows_Fostering_Donations.md) | Happy paths for post-MVP modules |
+
+### Domain
+
+| Document | What it covers |
+| :-- | :-- |
+| [Domain Model](docs/domain/DomainModel.md) | Aggregates, entities and relationships |
+| [State Machines](docs/domain/StateMachines.md) | Lifecycles and cross-machine rules |
+| [Glossary](docs/domain/Glossary.md) | Ubiquitous language used in code and stories |
+
+> The domain documents and the database design still describe the full Vision
+> (associations, fostering). The MVP changes are listed in
+> [MVP Vision §13](docs/product/MVPVision.md#13-impact-on-existing-documents).
+
+### Architecture
+
+| Document | What it covers |
+| :-- | :-- |
+| [Architecture Decision Records](docs/architecture/adr/) | One record per structural decision (authentication, deployment, aggregates, API, services) |
+| [Database Design Decisions](docs/architecture/DatabaseDesignDecisions.md) | Baseline schema decisions |
+
+### Research
+
+| Document | What it covers |
+| :-- | :-- |
+| [Authentication research](docs/research/AuthenticationResearch.md) | Spike that led to the authentication ADR |
+| [Matching algorithms](docs/research/MatchingAlgorithms.md) | Matchmaker design (Strategy pattern) |
+
+### Process and Iteration 0
+
+| Document | What it covers |
+| :-- | :-- |
+| [Definition of Done](docs/process/DEFINITION_OF_DONE.md) | When a story counts as done |
+| [Pull request template](.github/pull_request_template.md) | DoD evidence checklist for every PR |
+| [AGENTS.md](AGENTS.md) | Engineering rules and AI usage guidelines |
+| [Vertical prototype spec](docs/integrations/vertical-prototype/VerticalPrototypeSpec.md) | Iteration 0 slice: publish an animal, see it in the catalog |
+| [Demo steps](#demo-publish-an-animal-and-see-it-in-the-catalog) | How to run the Iteration 0 demo |
+| [CI workflow](.github/workflows/ci.yml) | Linters and tests on every PR |
 
 ## Run the application with Docker Compose
 
