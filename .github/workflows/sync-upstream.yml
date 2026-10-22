@@ -1,0 +1,37 @@
+# .github/workflows/sync-upstream.yml
+
+name: Sync upstream
+
+on:
+
+  schedule:
+
+    - cron: '0 */1 * * *'  # every 1 hour
+
+  workflow_dispatch:
+
+
+
+jobs:
+
+  sync:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+        with:
+
+          fetch-depth: 0
+
+      - run: |
+
+          git remote add upstream https://github.com/MESW-LES-2627/les-project-group-3.git
+
+          git fetch upstream
+
+          git merge upstream/main --no-edit
+
+          git push origin main
