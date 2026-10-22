@@ -4,7 +4,7 @@
 | :--- | :--- |
 | **Project** | Patas: Collaborative Animal Welfare Platform |
 | **Context** | MESW, Software Engineering Laboratory (2026/27), Integration 0 sprint review |
-| **Status** | DRAFT: slice chosen by the team; two technical decisions (§7) still pending confirmation |
+| **Status** | Implemented in iteration 0; the two decisions in §7 are resolved in [ADR 0001](../../architecture/adr/0001-authentication.md) and [ADR 0004](../../architecture/adr/0004-animal-aggregate.md) |
 | **Related documents** | [MVPVision](../../product/MVPVision.md) (A1, A2), [AuthenticationResearch](../../research/AuthenticationResearch.md), [DEFINITION_OF_DONE](../../process/DEFINITION_OF_DONE.md), [DatabaseDesignDecisions](../../architecture/DatabaseDesignDecisions.md) |
 
 ---
@@ -93,7 +93,7 @@ GitHub Actions with a PostgreSQL service:
 | Backend | ruff (to be added, no linter is configured yet), pytest |
 | Frontend | eslint, `tsc`, `next build` |
 
-## 6. Delivery (DoD #11, #12)
+## 6. Delivery (DoD #9, #10)
 
 * Incremental commits, in this order: compose and migration, domain, API, auth, frontend, CI (no Friday Dump).
 * A seed script for demo data (real data through the application, not static mockups).
