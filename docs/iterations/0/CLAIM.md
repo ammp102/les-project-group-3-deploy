@@ -14,7 +14,7 @@ Every link below points at the tag `iter-0`, so nothing needs hunting.
 | Pipeline | [CI status of the tagged commit](https://github.com/MESW-LES-2627/les-project-group-3/commit/iter-0). Workflow: [ci.yml](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/.github/workflows/ci.yml) |
 | MVP | [MVP Vision](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/product/MVPVision.md) |
 | Vision | [Vision](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/product/Vision.md) |
-| Stories in this increment | [Acceptance criteria AC1 to AC5](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/integrations/vertical-prototype/VerticalPrototypeSpec.md#22-acceptance-criteria-dod-1) |
+| Stories in this increment | [Iteration 0 milestone](https://github.com/MESW-LES-2627/les-project-group-3/milestone/1) (issues, PRs and ADRs). Acceptance criteria on the tag: [AC1 to AC5](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/integrations/vertical-prototype/VerticalPrototypeSpec.md#22-acceptance-criteria-dod-1) |
 | How to run the tests | [Running tests and checks](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/README.md#running-tests-and-checks) |
 | Retrospective | [Retrospective](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/iterations/0/CLAIM.md#retrospective) |
 | AI log | [AI log](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/iterations/0/CLAIM.md#ai-log) |
