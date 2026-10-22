@@ -39,7 +39,7 @@ Demo steps someone else can follow: [README, publish an animal and see it in the
 
 | Artefact | Link |
 | :-- | :-- |
-| Architecture Decision Records 0001 to 0006 | [adr/](https://github.com/MESW-LES-2627/les-project-group-3/tree/iter-0/docs/architecture/adr) |
+| Architecture Decision Records | [0001 authentication](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/architecture/adr/0001-authentication.md) · [0002 deployment](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/architecture/adr/0002-deployment-and-runtime-architecture.md) · [0003 pnpm](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/architecture/adr/0003-frontend-package-management-pnpm.md) · [0004 animal aggregate](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/architecture/adr/0004-animal-aggregate.md) · [0005 fetch animal data](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/architecture/adr/0005-fetch-animal-data.md) · [0006 application services](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/architecture/adr/0006-application-services.md) |
 | Definition of Done | [DEFINITION_OF_DONE.md](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/process/DEFINITION_OF_DONE.md) |
 | Pull request template | [pull_request_template.md](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/.github/pull_request_template.md) |
 | Engineering rules and AI guidelines | [AGENTS.md](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/AGENTS.md) |
