@@ -11,7 +11,7 @@ Every link below points at the tag `iter-0`, so nothing needs hunting.
 | Compare with the last tag | First iteration, there is no earlier tag. [Whole history, root commit to `iter-0`](https://github.com/MESW-LES-2627/les-project-group-3/compare/d351ee989d0994d681ae3ee7a82112b6d49183b1...iter-0) |
 | Production | TODO: production URL |
 | Staging | TODO: staging URL, or "none" and why |
-| Pipeline | TODO: URL of the green CI run on the tagged commit. Workflow: [ci.yml](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/.github/workflows/ci.yml) |
+| Pipeline | [CI status of the tagged commit](https://github.com/MESW-LES-2627/les-project-group-3/commit/iter-0). Workflow: [ci.yml](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/.github/workflows/ci.yml) |
 | MVP | [MVP Vision](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/product/MVPVision.md) |
 | Vision | [Vision](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/product/Vision.md) |
 | Stories in this increment | [Acceptance criteria AC1 to AC5](https://github.com/MESW-LES-2627/les-project-group-3/blob/iter-0/docs/integrations/vertical-prototype/VerticalPrototypeSpec.md#22-acceptance-criteria-dod-1) |
