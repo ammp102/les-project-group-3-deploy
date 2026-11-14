@@ -15,6 +15,7 @@ LAST_DB_CHECK_TIME = 0.0
 LAST_DB_STATUS = "unchecked"
 DB_CHECK_INTERVAL = 3600  # 1 hour in seconds
 
+
 @router.get("/health", status_code=status.HTTP_200_OK)
 async def health_check(
     response: Response,
@@ -32,8 +33,10 @@ async def health_check(
             LAST_DB_CHECK_TIME = current_time
         except Exception as e:
             LAST_DB_STATUS = f"unhealthy: {e!s}"
-            LAST_DB_CHECK_TIME = current_time  # Still update time so we don't spam a broken DB
-    
+            LAST_DB_CHECK_TIME = (
+                current_time  # Still update time so we don't spam a broken DB
+            )
+
     # If the last known status was bad, fail the health check
     if "unhealthy" in LAST_DB_STATUS:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
@@ -45,6 +48,8 @@ async def health_check(
         "checks": {
             "api": "ok",
             "database": LAST_DB_STATUS,
-            "next_db_check_in_seconds": int(DB_CHECK_INTERVAL - (current_time - LAST_DB_CHECK_TIME))
+            "next_db_check_in_seconds": int(
+                DB_CHECK_INTERVAL - (current_time - LAST_DB_CHECK_TIME)
+            ),
         },
     }
